@@ -1,0 +1,35 @@
+language: java
+services:
+- docker
+env:
+- CHANGE_MINIKUBE_NONE_USER=true
+before_script:
+- unset _JAVA_OPTIONS
+- cd finish
+- chmod +x ../scripts/travisTest.sh
+script:
+- sudo mount --make-rshared /
+- curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+- chmod +x kubectl
+- sudo ln -s $(pwd)/kubectl /usr/local/bin/kubectl
+- wget https://github.com/kubernetes/minikube/releases/download/v0.28.2/minikube-linux-amd64 -q -O minikube
+- chmod +x minikube
+- sudo ln -s $(pwd)/minikube /usr/local/bin/minikube
+- sudo minikube start --vm-driver=none --bootstrapper=localkube
+- ../scripts/travisTest.sh
+notifications:
+  slack:
+    template:
+    - 'Build: <%{build_url}| %{build_number}> | Commit (<%{compare_url}|%{commit}>):
+      %{commit_message}'
+    - 'Repo@Branch: %{repository_slug}@%{branch}'
+    - 'Author: %{author}'
+    - 'Summary: %{result} in %{duration}'
+    rooms:
+      secure: VwWwp+VAYE1WI0PMVnDmEUMUDDaH9xH/Rq91cuDAIfdmA5+krxIGYTOjNgvP0ZMbohsWMOLlqMwurBvD2kU4Blvv0av2+ZZPzFtvNu5E/VX6wFlPAgt+qyEHqfC+0Cgv22KecCaD5e65Yhqi+OFdZRTjjDCaJuJ0tC+oZEFC5kMWOlf2hTwaffEbPBUz/ebbrmdvq8M/4b/H3PLRQYkvwM3h3tJVwAIjeao4X+8yKGXur+uHNoamZt8KlcVQh4nFHJUdTHQLNu78Fy5SW2zHXCIdcTdVrIBdWeMl1aT3smyssTUwobiFGtmJHGoLRZUh4FAIFJXdyf7S2Oq1kg/qZwq/fLVjww3/Ed+SG/zf8JQwPmJ5JsxoypPu3oI1HAmUwdT0ejJEtRlAUHNsliTyXHWVs7+nH7K+GbXIANfplGngeY7Wyp/476qLlfPt2iS/5rW9xcrZbXBBF7KzRSh+TAx5dAXcXuSjFc6FJcxnupq4unVPo/ejO/3H6hqReKO43LaOClYumLsWZLLgddC+Yty8lWs8Y481NcGUr2B1lOfK8WE+DlX0USgtsswsfgZ7zMV/TWW5BC22YeJXb/PcnJd28FKZjih9XCWDR4wtftxDWY6drAVcxg8OeCtVzXit7RVU4KwqoLDoEkOolOIxrvBgopLJuwOfJFQsffYbcXQ=
+    on_success: never
+    on_failure: always
+branches:
+  only:
+  - master
+  - qa
